@@ -2,6 +2,8 @@
 #include<unordered_map>
 #include<vector>
 #include<map>
+#include<fcntl.h>
+#include<unistd.h>
  
 using namespace std;
 vector<int> encoding(string s1){
@@ -71,6 +73,8 @@ void decoding(vector<int> op){
         old = n;
     }
 }
+
+
 int main()
 {
     // string s = "WYS*WYGWYS*WYSWYSG";
@@ -83,4 +87,15 @@ int main()
     // decoding(output_code);
     int fd;
     char buffer[80];
+    char msg[50] = "holaaaaaaaaa";
+    fd = open("ejemplo.txt",O_RDWR);
+    cout<<"fd = "<<fd<<endl;
+    if(fd !=-1){
+        write(fd,msg,sizeof(msg));
+        lseek(fd,0,SEEK_SET);
+        read(fd,buffer,sizeof(msg));
+        cout<<buffer<<endl;
+        close(fd);
+    }
+    
 }
