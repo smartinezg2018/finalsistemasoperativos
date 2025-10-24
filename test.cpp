@@ -4,6 +4,7 @@
 #include<map>
 #include<fcntl.h>
 #include<unistd.h>
+#include<cstring>
  
 using namespace std;
 vector<int> encoding(string s1){
@@ -87,15 +88,17 @@ int main()
     // decoding(output_code);
     int fd;
     char buffer[80];
-    char msg[50] = "holaaaaaaaaa";
+    char msg[60] = "llenar el texo con muchas otras cosas nnuevasn";
     fd = open("ejemplo.txt",O_RDWR);
     cout<<"fd = "<<fd<<endl;
     if(fd !=-1){
-        write(fd,msg,sizeof(msg));
+        write(fd,msg,strlen(msg));
         lseek(fd,0,SEEK_SET);
-        read(fd,buffer,sizeof(msg));
+        read(fd,buffer,strlen(msg));
         cout<<buffer<<endl;
         close(fd);
     }
+    
+    
     
 }
