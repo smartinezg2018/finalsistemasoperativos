@@ -1,5 +1,5 @@
 #include<iostream>
-#include<unordered_map>
+#include<map>
 #include<vector>
 #include<map>
 #include<fcntl.h>
@@ -7,24 +7,42 @@
 #include<cstring>
  
 using namespace std;
-vector<int> encoding(string s1){
 
-    cout << "Encoding\n";
-    unordered_map<string, int> table;
+
+map<string,int> asiicMapEnc(){
+    map<string, int> table;
     for (int i = 0; i <= 255; i++) {
         string ch = "";
         ch += char(i);
         table[ch] = i;
     }
+    return table;
+    
+}
 
+map<int,string> asiicMapDec(){
+    map<int, string> table;
+    for (int i = 0; i <= 255; i++) {
+        string ch = "";
+        ch += char(i);
+        table[i] = ch;
+    }
+    return table;
+    
+}
+
+vector<int> encoding(string s){
+
+    cout << "Encoding\n";
+    map<string, int> table = asiicMapEnc();
     string p = "", c = "";
-    p += s1[0];
+    p += s[0];
     int code = 256;
     vector<int> output_code;
     cout << "String\tOutput_Code\tAddition\n";
-    for (int i = 0; i < s1.length(); i++) {
-        if (i != s1.length() - 1)
-            c += s1[i + 1];
+    for (int i = 0; i < s.length(); i++) {
+        if (i != s.length() - 1)
+            c += s[i + 1];
         if (table.find(p + c) != table.end()) {
             p = p + c;
         }
@@ -45,12 +63,7 @@ vector<int> encoding(string s1){
 
 void decoding(vector<int> op){
     cout << "\nDecoding\n";
-    unordered_map<int, string> table;
-    for (int i = 0; i <= 255; i++) {
-        string ch = "";
-        ch += char(i);
-        table[i] = ch;
-    }
+    map<int, string> table = asiicMapDec();
     int old = op[0], n;
     string s = table[old];
     string c = "";
@@ -78,26 +91,32 @@ void decoding(vector<int> op){
 
 int main()
 {
-    // string s = "WYS*WYGWYS*WYSWYSG";
-    // vector<int> output_code = encoding(s);
-    // cout << "Output Codes are: ";
-    // for (int i = 0; i < output_code.size(); i++) {
-    //     cout << output_code[i] << " ";
-    // }
-    // cout << endl;
-    // decoding(output_code);
-    int fd;
-    char buffer[80];
-    char msg[60] = "llenar el texo con muchas otras cosas nnuevasn";
-    fd = open("ejemplo.txt",O_RDWR);
-    cout<<"fd = "<<fd<<endl;
-    if(fd !=-1){
-        write(fd,msg,strlen(msg));
-        lseek(fd,0,SEEK_SET);
-        read(fd,buffer,strlen(msg));
-        cout<<buffer<<endl;
-        close(fd);
+    string s = "WYS*WYGWYS*WYSWYSG";
+    vector<int> output_code = encoding(s);
+    cout << "Output Codes are: ";
+    for (int i = 0; i < output_code.size(); i++) {
+        cout << output_code[i] << " ";
     }
+    cout << endl;
+    decoding(output_code);
+    cout<<endl;
+
+
+    // int fd;
+    // char buffer[80];
+    // char msg[60] = "llenar el texo con muchas otras cosas nnuevasn";
+    // fd = open("ejemplo.txt",O_RDWR);
+    // cout<<"fd = "<<fd<<endl;
+
+    // if(fd !=-1){
+    //     // aqui se escribe el mensaje
+    //     write(fd,msg,strlen(msg));
+    //     // 
+    //     lseek(fd,0,SEEK_SET);
+    //     read(fd,buffer,strlen(msg));
+    //     cout<<buffer<<endl;
+    //     close(fd);
+    // }
     
     
     
