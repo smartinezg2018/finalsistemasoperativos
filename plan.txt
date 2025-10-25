@@ -1,0 +1,5 @@
+1. que archivos vamos a usar, que va a tener cada uno de ellos.
+2. funcionalidades generales del programa
+3. decidir que algoritmos usar 
+4. consultar como se guardan los binarios dentro de un archivo, guardando binario, no caracter (CUIDADO)
+5. investigar como paralelizar la lectura de varios archivos
