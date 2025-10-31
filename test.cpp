@@ -5,8 +5,11 @@
 #include<fcntl.h>
 #include<unistd.h>
 #include<cstring>
- 
+#include<sys/stat.h>
+#include<algorithm>
+#include<string>
 using namespace std;
+
 
 
 map<string,int> asiicMapEnc(){
@@ -31,15 +34,46 @@ map<int,string> asiicMapDec(){
     
 }
 
+
+// cuando quiera encriptar tomar el nombre de un archivo y que se encripte con el mimso nombre
+
+string readFile(const string& filename){
+
+    struct stat st;
+    stat(filename.c_str(),&st);
+    off_t fileSize = st.st_size;
+    int fr = open(filename.c_str(),O_RDWR);
+    char* buffer = new char[fileSize];
+    read(fr,buffer,fileSize);
+    string temp = buffer;
+    cout<<temp<<endl;
+    delete[] buffer;
+    return temp;
+    
+}
+
+// cuando quiera desincriptar solo dar el nombre del.bin
+void writingFile(const string& filename,vector<int> codes){
+    int fr = open(filename.c_str(),O_RDWR |O_CREAT);
+    for(int code : codes){
+        u_int8_t second_half = code & 0xFF;
+        u_int8_t first_half = (code >> 8) & 0xFF;
+        write(fr, &second_half, 1);
+        write(fr, &first_half, 1);
+    }
+    close(fr);
+    
+}
+
+
+
 vector<int> encoding(string s){
 
-    cout << "Encoding\n";
     map<string, int> table = asiicMapEnc();
     string p = "", c = "";
     p += s[0];
     int code = 256;
     vector<int> output_code;
-    cout << "String\tOutput_Code\tAddition\n";
     for (int i = 0; i < s.length(); i++) {
         if (i != s.length() - 1)
             c += s[i + 1];
@@ -47,8 +81,6 @@ vector<int> encoding(string s){
             p = p + c;
         }
         else {
-            cout << p << "\t" << table[p] << "\t\t" 
-                 << p + c << "\t" << code << endl;
             output_code.push_back(table[p]);
             table[p + c] = code;
             code++;
@@ -56,22 +88,37 @@ vector<int> encoding(string s){
         }
         c = "";
     }
-    cout << p << "\t" << table[p] << endl;
     output_code.push_back(table[p]);
     return output_code;
 }
 
-void decoding(vector<int> op){
-    cout << "\nDecoding\n";
+
+
+string decoding(const string& fileName){
+
+    int fd = open(fileName.c_str(),O_RDONLY);
+    vector<int> codes;
+    unsigned char buffer[2];
+    int temp;
+    while(read(fd,&buffer,2) > 0){
+        
+        temp =  (buffer[1] << 8) | buffer[0];
+        codes.push_back(temp);
+        cout<<temp<<endl;
+        
+    }
+    return "";
+    
+    string final = "";
     map<int, string> table = asiicMapDec();
-    int old = op[0], n;
+    int old = codes[0], n;
     string s = table[old];
     string c = "";
     c += s[0];
-    cout << s;
+    final+=s;
     int count = 256;
-    for (int i = 0; i < op.size() - 1; i++) {
-        n = op[i + 1];
+    for (int i = 0; i < codes.size() - 1; i++) {
+        n = codes[i + 1];
         if (table.find(n) == table.end()) {
             s = table[old];
             s = s + c;
@@ -79,45 +126,126 @@ void decoding(vector<int> op){
         else {
             s = table[n];
         }
-        cout << s;
+        final+=s;
         c = "";
         c += s[0];
         table[count] = table[old] + c;
         count++;
         old = n;
     }
+    close(fd);
+    return final;
 }
 
 
-int main()
-{
-    string s = "WYS*WYGWYS*WYSWYSG";
-    vector<int> output_code = encoding(s);
-    cout << "Output Codes are: ";
-    for (int i = 0; i < output_code.size(); i++) {
-        cout << output_code[i] << " ";
+void compress(const string& filename){
+// en este metodo vamos a comprimir el archivo que sea, solo recibiendo su nombre;
+
+
+    int readFile = open(filename.c_str(),O_RDONLY);
+    int writeFile = open("test.bin", O_RDWR | O_CREAT | O_TRUNC, 0666);
+    unsigned char buffer;
+    // struct stat st;
+    // stat(filename.c_str(),&st);
+    // off_t fileSize = st.st_size;
+
+    if(read(readFile,&buffer,1)<0){
+        return;
     }
-    cout << endl;
-    decoding(output_code);
-    cout<<endl;
+
+    map<string, int> table = asiicMapEnc();
+    string p = "", c = "";
+    p += buffer;
+    // cout<<"p;"<<p<<endl;
+    int code = 256;
+    while(read(readFile,&buffer,1) > 0){       
+        c = buffer;
+        if (table.find(p + c) != table.end()) {
+            p = p + c;
+        }
+        else {
+            // output_code.push_back(table[p]);
+            int num = table[p];
+            u_int8_t second_half = num & 0xFF;
+            u_int8_t first_half = (num >> 8) & 0xFF;
+            write(writeFile, &second_half, 1);
+            write(writeFile, &first_half, 1);
+            // cout<<table[p]<<" = "<<num<<endl;
+            table[p + c] = code;
+            code++;
+            p = c;
+        }
+        c = "";
+        
+    }
+    int num = table[p];
+    u_int8_t second_half = num & 0xFF;
+    u_int8_t first_half = (num >> 8) & 0xFF;
+    write(writeFile, &second_half, 1);
+    write(writeFile, &first_half, 1);
+    close(writeFile);
+    close(readFile);
+
+}
+
+void uncompress(const string filename){
+    int readFile = open(filename.c_str(),O_RDONLY);
+    int writeFile = open("final.jpeg", O_RDWR | O_CREAT | O_TRUNC, 0666);
+    unsigned char buffer[2];
+    if(read(readFile,&buffer,2)<0)
+        return;
+
+    string final = "";
+    map<int, string> table = asiicMapDec();
+    int old = (buffer[1] << 8) | buffer[0], n;
+    string s = table[old];
+    write(writeFile,s.data(),s.size());
+    string c = "";
+    c += s[0];
+    final+=s;
+    int count = 256;
+
+    while(read(readFile,&buffer,2) > 0){
+
+        n = (buffer[1] << 8) | buffer[0];
+        if (table.find(n) == table.end()) {
+            s = table[old];
+            s = s + c;
+        }
+        else {
+            s = table[n];
+        }
+        // final+=s;
+        write(writeFile,s.data(),s.size());
+        c = "";
+        c += s[0];
+        table[count] = table[old] + c;
+        count++;
+        old = n;
+        
+    }
 
 
-    // int fd;
-    // char buffer[80];
-    // char msg[60] = "llenar el texo con muchas otras cosas nnuevasn";
-    // fd = open("ejemplo.txt",O_RDWR);
-    // cout<<"fd = "<<fd<<endl;
+    close(readFile);
+    close(writeFile);
 
-    // if(fd !=-1){
-    //     // aqui se escribe el mensaje
-    //     write(fd,msg,strlen(msg));
-    //     // 
-    //     lseek(fd,0,SEEK_SET);
-    //     read(fd,buffer,strlen(msg));
-    //     cout<<buffer<<endl;
-    //     close(fd);
-    // }
+
     
-    
+}
+
+int main(){
+
+    // cout<<convertDecimaltoBinary(10)<<endl;
+    // string text = R"(
+    // asdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasd
+    // )";
+    // writingFile("plan.bin",encoding(text));
+
+    compress("images (1).jpeg");
+    uncompress("test.bin");
+    // cout<<readFile("test.bin");
+
+
+
     
 }
