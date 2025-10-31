@@ -1,0 +1,654 @@
+ST0257 – Sistemas operativos
+Proyecto 3: Utilidad de Gestión Segura y Eficiente de
+Archivos (GSEA)
+MBA, I.S. José Luis Montoya Pareja
+Escuela de Ciencias Aplicadas e Ingeniería
+Universidad EAFIT
+Medellín, Colombia, Suramérica
+Resumen
+La evaluación final del curso Sistemas Operativos propone un reto
+integrador que articula los tres ejes fundamentales del libro
+Operating Systems: Three Easy Pieces (OSTEP) —virtualización,
+concurrencia y persistencia— mediante el desarrollo de un proyecto
+aplicado. El objetivo es que el estudiante diseñe, implemente y
+evalúe un sistema funcional que evidencie la comprensión de los
+principios del diseño de sistemas operativos, el razonamiento
+sobre el desempeño y la capacidad para comparar alternativas de
+implementación. La actividad busca consolidar la comprensión de la
+virtualización de CPU y memoria, el manejo de la concurrencia
+mediante hilos y mecanismos de sincronización, y la gestión
+eficiente de los sistemas de archivos e I/O. Además, fomenta la
+reflexión crítica sobre la eficiencia, la modularidad y la
+escalabilidad de las soluciones, así como la comunicación técnica
+efectiva a través de documentación y sustentación oral.
+Palabras clave
+Virtualización de CPU; Virtualización de Memoria; Concurrencia;
+Sincronización; Planificación de Procesos; Memoria Paginada;
+Sistemas de Archivos; Entrada/Salida; Evaluación de Desempeño;
+Aislamiento y Protección; Diseño Modular de Sistemas Operativos;
+Operating Systems: Three Easy Pieces (OSTEP).
+Objetivo general
+El presente proyecto busca evaluar la capacidad de los estudiantes para
+aplicar conceptos fundamentales de sistemas operativos en el diseño y
+desarrollo de una aplicación de bajo nivel. El estudiante deberá
+demostrar dominio en la gestión de archivos mediante llamadas al sistema,
+la implementación de concurrencia para la optimización del rendimiento y
+la investigación e implementación de algoritmos de compresión y
+encriptación desde cero, sin depender de librerías externas para dichas
+funcionalidades.
+Descripción del problema
+Se debe desarrollar una utilidad de línea de comandos en C o C++ que
+permita a un usuario comprimir/descomprimir y encriptar/desencriptar
+archivos o directorios completos de manera eficiente. La eficiencia se
+logrará procesando múltiples archivos de forma concurrente.
+La aplicación deberá ser invocada desde la terminal y aceptar los
+siguientes parámetros:
+• Operación: -c (comprimir), -d (descomprimir), -e (encriptar), -u
+(desencriptar). Se pueden combinar operaciones (ej. -ce para
+comprimir y luego encriptar).
+• Algoritmo de Compresión: --comp-alg [nombre_algoritmo]
+• Algoritmo de Encriptación: --enc-alg [nombre_algoritmo]
+• Entrada: -i [ruta_archivo_o_directorio]
+• Salida: -o [ruta_archivo_o_directorio_salida]
+• Clave (opcional): -k [clave_secreta] para las operaciones de
+encriptación/desencriptación.
+Funcionalidades Clave
+1. Gestor de Archivos (File Manager): La aplicación debe operar sobre
+un único archivo o sobre todos los archivos dentro de un
+directorio. Debe usar llamadas directas al sistema operativo (ej.
+open, read, write, close, opendir, readdir en POSIX; o CreateFile,
+ReadFile, WriteFile en Windows API) en lugar de las abstracciones
+de librerías estándar como <stdio.h> (fopen, fread).
+2. Concurrencia: Al procesar un directorio, la aplicación debe lanzar
+un hilo o proceso separado para cada archivo. El objetivo es
+paralelizar el trabajo y mejorar el rendimiento en sistemas
+multinúcleo. Se debe gestionar adecuadamente el ciclo de vida de
+estos hilos/procesos.
+3. Algoritmos Propios: Los algoritmos de compresión y encriptación
+deben ser implementados por el equipo. Está estrictamente prohibido
+el uso de librerías externas como zlib, OpenSSL, Crypto++, etc.,
+para estas tareas.
+o Compresión: El equipo es libre de elegir e implementar
+cualquier algoritmo de compresión sin pérdida. La elección
+debe estar justificada en el documento técnico.
+▪ Sugerencias: Codificación Huffman, Run-Length Encoding
+(RLE), Lempel-Ziv-Welch (LZW).
+o Encriptación: El equipo es libre de elegir e implementar
+cualquier algoritmo de encriptación simétrica (de clave
+secreta). La elección debe estar justificada.
+▪ Sugerencias: Cifrado Vigenère, DES (implementando sus
+rondas y operaciones), o una versión simplificada de
+AES (implementando las operaciones de S-box, ShiftRows,
+MixColumns).
+Entregables
+1. Código Fuente: Un archivo .zip o .tar.gz con todo el código
+fuente en C/C++. El código debe estar bien comentado y
+estructurado, e incluir un Makefile o script de compilación.
+2. Documento Técnico (PDF): Un documento explicando la solución,
+que debe incluir:
+o Introducción: Descripción del proyecto.
+o Diseño de la Solución: Diagramas de arquitectura y flujo
+de datos.
+o Justificación de Algoritmos: (Sección Crítica)
+Explicación técnica de por qué se eligieron los
+algoritmos específicos, comparando sus ventajas y
+desventajas (complejidad, rendimiento, nivel de
+compresión/seguridad).
+o Implementación de Algoritmos: Explicación detallada de
+la implementación.
+o Estrategia de Concurrencia: Descripción del modelo de
+concurrencia utilizado.
+o Guía de Uso: Instrucciones claras sobre cómo compilar y
+ejecutar el programa.
+3. Descripción de un Caso de Uso Válido: Un documento de una
+página describiendo un escenario real donde la herramienta
+sería útil.
+4. Video de Sustentación: Un video (máximo 10 minutos) con una
+demostración en vivo del programa y una explicación de las
+partes más relevantes del código (llamadas al sistema,
+concurrencia y algoritmos).
+Instalación de Linux
+Ver anexos 2, 3 y 4.
+Detalle del comando a ejecutar
+NOMBRE
+procplanner – Simulación de planificación de procesos.
+SINOPSIS
+procplanner [-f FILE]
+DESCRIPCION
+Se verifica si FILE es un archivo que está en la misma ruta donde
+está el ejecutable. Si lo encuentra, debe cargarlo en memoria en un
+ArrayList o similar.
+OPCIONES
+Estado de salida del proceso:
+0 Si el proceso termina OK
+1 Si el proceso termina con errores
+Consideraciones generales
+1. El desarrollo de la práctica puede ser individual o en equipos de
+máximo cuatro personas.
+2. La entrega de la práctica se realizará entregando los fuentes en
+archivos (cada archivo fuente individual) y el informe por el buzón
+recepción de trabajos de Eafit Interactiva (cualquier otro medio no
+será admitido).
+3. Los equipos se deben inscribir por la herramienta de grupos de Eafit
+Interactiva. Esto estará habilitado hasta el jueves 23 de octubre a
+las 23:59.
+4. Cada semana se sacará un espacio de al inicio de la clase para
+presentar avances de la práctica y resolver dudas.
+5. Criterios de evaluación (ver Anexo 1)
+Fecha de entrega
+Jueves 20 de noviembre de 2025 hasta las 11:59 p.m. en clase a través de
+Eafit Interactiva.
+Sustentación
+Viernes 21 de noviembre desde las 3 p.m.
+Referencias
+[1] Arpaci-Dusseau, R. H., & Arpaci-Dusseau, A. C. (2018). Operating
+Systems: Three Easy Pieces (Cap. 4: "Mechanisms: Limited Direct
+Execution").
+Disponible en: https://pages.cs.wisc.edu/~remzi/OSTEP/
+Anexo 1. Criterios de calificación
+Nombre de la asignatura: Sistemas Operativos________________________________________________________________________
+Competencia a la que aporta la asignatura: Conocer el sistema operativo del computador para un mejor desarrollo, diseño y ejecución de las aplicaciones
+y aplicar nuevas soluciones._
+Resultado de asignatura evaluado: Utilidad de Gestión Segura y Eficiente de Archivos (GSEA) Evento evaluativo: Proyecto 3 % del evento evaluativo: 30%
+Criterio Descripción Cumple con
+altos
+estándares (4.5
+– 5.0)
+Cumple a
+satisfacción
+(4.0 – 4.4)
+Cumple
+parcialmente
+(3.5 – 3.9)
+Incumple
+parcialmente
+(2.5 – 3.4)
+Incumple
+totalmente (0
+– 2.4)
+Peso
+Funcionalidad
+del Programa
+Compresión/Descompresión: El
+programa comprime y
+descomprime sin corrupción de
+datos.
+Encriptación/Desencriptación:
+El programa encripta y
+desencripta correctamente
+según la clave.
+Manejo de Argumentos y
+Errores: Interpreta
+correctamente los parámetros
+y gestiona fallos de forma
+robusta.
+Funciona de
+principio a
+fin, muestra
+resultados
+claros y sin
+errores
+visibles.
+Funciona,
+aunque con
+detalles
+menores (e.g.,
+errores al
+mostrar
+valores o
+estados).
+Funciona
+parcialmente;
+algunos
+elementos no
+operan como
+se espera.
+Funciona de
+forma muy
+limitada o
+errática.
+No funciona o
+no se
+entrega.
+30%
+Aplicación de
+Conceptos de
+SO
+Uso de Llamadas al Sistema:
+Usa exclusivamente llamadas
+al sistema para la
+manipulación de archivos.
+Implementación de
+Concurrencia: La concurrencia
+está bien implementada,
+gestionando correctamente
+hilos/procesos y mejorando el
+rendimiento.
+Manejo Eficiente de Recursos:
+No presenta fugas de memoria,
+descriptores de archivos, o
+procesos "zombie".
+Implementación
+completa de
+todos los
+elementos
+Implementación
+con algún
+evento de
+ejecución
+relacionado
+con la
+aplicación de
+algún concepto
+de clase sin
+que afecte el
+funcionamiento
+del programa
+Presenta
+algún
+inconveniente
+en el
+desarrollo de
+algún
+concepto
+visto en
+clase.
+Posee errores
+graves en la
+aplicación de
+conceptos
+vistos en
+clase
+No aplica
+conceptos
+vistos en
+clase.
+40%
+Criterio Descripción Cumple con
+altos
+estándares (4.5
+– 5.0)
+Cumple a
+satisfacción
+(4.0 – 4.4)
+Cumple
+parcialmente
+(3.5 – 3.9)
+Incumple
+parcialmente
+(2.5 – 3.4)
+Incumple
+totalmente (0
+– 2.4)
+Peso
+Calidad del
+Código y
+Algoritmos
+Implementación y
+Justificación de Algoritmos:
+Los algoritmos elegidos son
+implementados correctamente
+desde cero. La justificación
+de su elección es sólida y
+demuestra comprensión de sus
+características.
+Estructura y Claridad: El
+código es legible, modular y
+está bien documentado.
+Alguno o todos
+los algoritmos
+implementados
+tiene mejoras
+sugeridas por
+los estudiantes
+claramente
+visibles y que
+no afectan la
+compatibilidad.
+Los algoritmos
+implementados
+funciona
+correctamente.
+Uno de los
+algoritmos
+implementados
+no funciona
+correctamente
+Al menos dos
+de los
+algoritmos
+implementados
+no funcionan
+adecuadamente.
+No funciona
+ninguno de
+los
+algoritmos.
+20%
+Documentación
+y
+presentación
+Calidad de Entregables: El
+documento técnico, el caso de
+uso y el video son claros,
+completos y profesionales.
+Documentación
+completa y
+salida clara en
+consola,
+entrega
+organizada.
+Documentación
+entendible con
+algunos
+detalles por
+mejorar.
+Presentación
+poco clara o
+incompleta.
+Falta
+documentación
+básica o
+presentación
+confusa.
+Sin
+documentación
+ni
+presentación
+entendible.
+10%
+Anexo 2. Como instalar WSL (Windows Subsystem for Linux)
+WSL es una capa de compatibilidad para ejecutar ejecutables de Linux
+directamente en Windows. No es una máquina virtual tradicional, sino un
+tipo de virtualización a nivel de sistema operativo que permite una
+integración muy fluida.
+Requisitos Previos:
+• Windows 10, versión 2004 o posterior (Build 19041 o superior) para
+WSL2.
+• Virtualización habilitada en la BIOS/UEFI de tu computadora
+(generalmente "Intel VT-x" o "AMD-V").
+Pasos de Instalación:
+• Abrir PowerShell como Administrador:
+Haz clic derecho en el botón de Inicio de Windows y selecciona
+"Windows PowerShell (Administrador)" o "Terminal de Windows
+(Administrador)".
+• Habilitar las características de la Plataforma de Máquina Virtual y
+el Subsistema de Windows para Linux:
+Ejecuta el siguiente comando:
+dism.exe /online /enable-feature
+/featurename:VirtualMachinePlatform /all /norestart
+dism.exe /online /enable-feature /featurename:Microsoft-WindowsSubsystem-Linux /all /norestart
+• Reiniciar tu Computadora: Es necesario reiniciar para que los
+cambios surtan efecto.
+• Establecer WSL 2 como tu versión predeterminada (Recomendado):
+Después del reinicio, abre PowerShell o Símbolo de sistema y
+ejecuta:
+wsl --set-default-version 2
+• Si ves un mensaje sobre "Actualización del componente del kernel de
+WSL 2", visita
+[https://aka.ms/wsl2kernel\](https://aka.ms/wsl2kernel) y descarga
+el paquete de actualización. Ejecútalo y luego vuelve a intentar el
+comando `wsl --set-default-version 2.
+• Instalar una distribución de Linux desde la Microsoft Store:
+Abre la Microsoft Store y busca tu distribución de Linux preferida,
+como "Ubuntu", "Debian", "Kali Linux", "Mint", etc.
+Haz clic en la distribución que deseas y luego en "Obtener" o
+"Instalar".
+Una vez instalada, haz clic en "Iniciar".
+• Configurar tu Nueva Distribución de Linux:
+La primera vez que inicies la distribución, se te pedirá que crees
+un nombre de usuario y una contraseña para tu entorno Linux.
+Recuerda estas credenciales.
+¡Listo! Ya tienes WSL instalado con tu distribución de Linux. Puedes
+acceder a ella abriendo el menú de inicio y buscando la distribución que
+instalaste (por ejemplo, "Ubuntu").
+Anexo 3. Guía para instalar Linux Mint junto a Windows (Dual Boot GPT +
+Secure Boot)
+0. Antes de iniciar: Respaldo. Haz copia de seguridad de archivos
+importantes.
+1. Preparar Windows
+1.1 Verificar tabla GPT
+Objetivo: Confirmar que el disco usa GPT antes de continuar.
+1. Pulsa Win + X y selecciona Administración de discos.
+2. Haz clic derecho sobre el disco físico (no las particiones) →
+Propiedades → pestaña Volúmenes.
+3. Revisa “Estilo de partición”: debe indicar GUID Partition Table
+(GPT).
+4. Si aparece Master Boot Record (MBR), debes usar otra guía, esta no
+aplica.
+1.2 Revisar UEFI y Secure Boot
+Objetivo: Confirmar que Windows arranca en UEFI y con Secure Boot activado.
+1. Pulsa Win + R, escribe msinfo32 y presiona Enter.
+2. En la ventana “Información del sistema”, localiza:
+o Modo de BIOS → UEFI
+o Estado de Arranque seguro → Activado
+Gracias a UEFI y Secure Boot, Linux Mint soporta el arranque seguro sin
+necesidad de desactivar nada.
+1.3 Reducir el volumen de Windows
+Objetivo: Crear espacio para instalar Linux Mint (mínimo 30 GB).
+1. Desde Administración de discos, clic derecho en C: → Reducir volumen.
+2. En “Tamaño del espacio por reducir (MB)”, ingresa al menos 30,000
+para que Linux pueda instalarse. Recomendado al menos 100,000. Ideal
+250,000.
+3. Haz clic en Reducir.
+4. Deberías ver una sección No asignada del tamaño indicado.
+1.4 Descargar la ISO de Linux Mint Cinnamon
+Objetivo: Obtener la imagen ISO necesaria.
+1. Visita el sitio oficial: https://linuxmint.com/download.php
+2. Selecciona la edición Cinnamon, arquitectura 64-bit.
+3. Elige un mirror cercano geográficamente para mayor velocidad.
+2. Crear USB Booteable (balenaEtcher)
+2.1 Instalar balenaEtcher
+Objetivo: Obtener una herramienta libre y fácil.
+1. Ve a https://www.balena.io/etcher/ y descarga la versión para
+Windows.
+2. Ejecuta el instalador o la versión portable: acepta permisos de
+administrador.
+3. Ubica el acceso directo tras la instalación.
+👉 balenaEtcher es multiplataforma, libre, y protegido para no
+sobrescribir discos internos
+2.2 Crear USB booteable
+Objetivo: Grabar Linux Mint en el USB correctamente.
+1. Inserta una memoria USB de al menos 4 GB.
+2. Abre balenaEtcher.
+3. Haz clic en Flash from file, selecciona la ISO.
+4. Haz clic en Select target, elige tu USB.
+5. Pulsa Flash! y espera a que termine (varios minutos).
+Videos sugeridos
+• Dual-Boot Windows 11 & Linux Mint: https://youtu.be/B97KkFDv86s
+• La forma correcta de hacer Dual-Boot con UEFI y Secure Boot:
+https://youtu.be/sC_s9qVpaYU
+• Cómo usar balenaEtcher para crear USB booteable:
+https://youtu.be/eM2C3FXD-qw
+3. Configurar BIOS/UEFI
+1. Reinicia y presiona repetidamente la tecla adecuada (Esc, F2, F12,
+Del) según tu portátil para abrir la UEFI.
+2. Asegúrate de:
+o Modo de arranque: UEFI
+o Secure Boot: activado
+3. En “Boot Order”, coloca el USB en primer lugar temporalmente.
+4. Guarda los cambios (usualmente F10) y sale.
+4. Instalar Linux Mint
+4.1 Iniciar desde USB
+1. Reinicia con el USB conectado.
+2. En el menú de arranque, elige el USB.
+3. Selecciona Start Linux Mint.
+4.2 Elegir idioma
+Escoge el idioma deseado (p. ej. Español o el que prefiera el estudiante).
+La interfaz es clara y multilingüe.
+4.3 Conexión y lanzamiento del instalador
+Conéctate a Internet para descargar drivers y actualizaciones.
+En el escritorio, haz doble clic en "Instalar Linux Mint".
+4.4 Tipo de instalación
+• Si aparece “Instalar junto a Windows Boot Manager”, selecciónala.
+• Si no, selecciona “Algo más” y manualmente:
+o Asigna la partición No asignada → sistema de archivos ext4 →
+punto de montaje /.
+o (Opcional) Crea swap si RAM < 4 GB.
+4.5 Configuración final
+Selecciona zona horaria, distribución de teclado, usuario, contraseña y
+nombre del equipo.
+4.6 Ejecutar instalación
+Haz clic en Instalar ahora, revisa el resumen, y confirma.
+Al finalizar, retira el USB y presiona Enter para reiniciar.
+Enlaces sugeridos: https://itsfoss.com/guide-install-linux-mint-16-dualboot-windows/ tiene muy buenas imágenes del paso a paso en la parte de
+instalación de Linux.
+5. Arranque Dual – GRUB
+1. Al reiniciar, aparecerá el menú GRUB con opciones para:
+o Linux Mint
+o Windows Boot Manager
+2. Para cambiar el sistema predeterminado en Linux:
+sudo nano /etc/default/grub
+# cambia GRUB_DEFAULT=0 a GRUB_DEFAULT=saved
+sudo update-grub
+6. Recomendaciones finales
+• Problemas con GRUB: Si no aparece GRUB, asegúrate de que el USB no
+siga en primer lugar y revisa Secure Boot / orden de arranque.
+• Eliminación del Dual Boot: Para quitar Linux Mint, elimina las
+particiones desde Windows y repara el arranque (con bootrec o medios
+de recuperación).
+Referencias:
+• Paso 1: Preparar el entorno
+o Linux Mint. (s.f.). Download Linux Mint 21.3. Recuperado de
+https://linuxmint.com/download.php
+o Microsoft. (2024). Create a recovery drive. Recuperado de
+https://support.microsoft.com/en-us/windows/create-arecovery-drive-abb4691b-5324-6d4a-876b-067dac7f3440
+• Paso 2: Reducir el espacio en disco
+o Microsoft. (s.f.). Create and format hard disk partitions.
+Recuperado de https://support.microsoft.com/enus/windows/create-and-format-a-hard-disk-partition-505def2f7e0b-2b0a-ce7e-22fae2f7f79e
+• Paso 3: Crear USB booteable
+o Rufus. (2024). Rufus - Create bootable USB drives the easy
+way. Recuperado de https://rufus.ie/en/
+• Paso 4: Configurar BIOS/UEFI
+o Acer. (s.f.). How to Enable or Disable Secure Boot. Recuperado
+de https://www.acer.com/us-en/support/articles/faq/000123792
+• Paso 5: Instalar Linux Mint
+o Linux Mint. (s.f.). Installation Guide. Recuperado de
+https://linuxmint-installationguide.readthedocs.io/en/latest/
+• Paso 6: Configurar GRUB
+o Linux Mint. (s.f.). Installation Guide. Recuperado de
+https://linuxmint-installationguide.readthedocs.io/en/latest/
+Anexo 4. Instalar Linux Mint en Máquina Virtual (VMWare o VirtualBox)
+Esta guía te llevará paso a paso con detalles claros para que tus
+estudiantes puedan instalar Linux Mint Cinnamon 64 bits dentro de una
+máquina virtual en Windows 10 o 11, usando VMware Workstation Player o
+Oracle VirtualBox, ambas gratuitas.
+Requisitos previos comunes
+1. Conexión a internet estable.
+2. ISO de Linux Mint Cinnamon 64-bit desde el sitio oficial.
+3. Al menos 4 GB de RAM en el host (8 GB recomendados).
+4. Unos 30 GB de disco libre para cada VM.
+Opción A: VMware Workstation Player
+1️⃣ Descarga e instalación de VMware
+• Visita https://www.vmware.com/go/getplayer-win
+virtualbox.org+13VMware
+Blogs+13TechSpot+13TheSecMasterTheSecMaster+4mysamplecode.com+4vmwa
+re-player.en.softonic.com+4Linuxiac
+• Haz clic en Download Now para Windows.
+• Ejecuta el instalador, acepta la licencia (ahora es gratuito
+incluso para uso comercial) The VergeWikipedia.
+• Finaliza la instalación y abre VMware Player.
+2️⃣ Crear nueva máquina virtual
+1. Haz clic en Create a New Virtual Machine.
+2. Selecciona Installer disc image file (iso) y busca la ISO de Linux
+Mint.
+3. Elige el sistema invitado: Linux + Ubuntu 64-bit (Mint está basado
+en Ubuntu).
+4. Pon un nombre, ejemplo “Linux Mint VM” y selecciona la ubicación.
+5. Define disco virtual de 30 GB, elige “Store as a single file” para
+mejor rendimiento.
+6. Antes de finalizar, haz clic en Customize Hardware y ajusta:
+o Memoria: 4 GB
+o CPUs: 2 cores
+o En la pestaña New CD/DVD: marca “Connect at power on” y
+selecciona la ISO.
+o Asegúrate de que esté habilitado EFI firmware (si ves esa
+opción).
+mysamplecode.com+2At Home Computer Guides+2At Home Computer
+Guides+2mysamplecode.com+2At Home Computer Guides+2At Home
+Computer Guides+2mysamplecode.com
+3️⃣ Iniciar e instalar Linux Mint
+1. Cierra la configuración y haz clic en Play virtual machine.
+2. En el menú de arranque, selecciona Start Linux Mint.
+3. Cuando cargue el entorno en vivo, haz doble clic en Install Linux
+Mint.
+4. Elegir idioma: selecciona Español (o cualquier preferido).
+5. Marca “Install third-party software” si deseas soporte multimedia.
+6. En tipo de instalación, selecciona Erase disk & install, validando
+que solo afecta a la VM.
+7. Define zona horaria, distribución de teclado, crea usuario y
+contraseña.
+Wikipedia+10Wikipedia+10YouTube+10Wikipedia+5mysamplecode.com+5TheS
+ecMaster+5
+4️⃣ Finalizar e iniciar sesión
+1. Una vez termine la instalación, haz clic en Restart Now.
+2. Desconecta la ISO si te lo solicita.
+3. Inicia sesión con tus credenciales. ¡Listo!
+4. (Opcional) Instalar VMware Tools desde el menú para mejorar
+integración (ratón, resolución, carpetas compartidas).
+Opción B: Oracle VirtualBox
+1️⃣ Descargar e instalar VirtualBox
+• Ve a https://www.virtualbox.org/wiki/Downloads
+virtualbox.org+7virtualbox.org+7virtualbox.org+7
+• Descarga e instala la versión para Windows (siguiente → siguiente
+por defecto).
+• Si lo deseas, complementa con el Extension Pack para USB 2/3 y
+otras funcionalidades Wikipedia+1virtualbox.org+1.
+2️⃣ Crear nueva VM
+1. Inicia VirtualBox y clic en Nueva.
+2. Nombre: “Linux Mint”, tipo Linux, versión Ubuntu (64-bit).
+3. Memoria: asigna 4096 MB.
+4. Disco: elige VDI, dynamically allocated, tamaño 30 GB.
+YouTube+12Wikipedia+12virtualbox.org+12At Home Computer Guides
+3️⃣ Atachar ISO de Linux Mint
+1. Con la VM seleccionada, clic en Configuración → Almacenamiento.
+2. En “Controlador: IDE”, selecciona el icono de CD.
+3. Haz clic en “Elegir archivo” y selecciona tu ISO de Linux Mint.
+4. Marca “Conectar al iniciar” si está disponible.
+WikipediaWikipedia
+4️⃣ Instalar Linux Mint en la VM
+1. Inicia la VM y en el selector, elige Start Linux Mint.
+2. En el escritorio en vivo, haz doble clic en Install Linux Mint.
+3. Selecciona idioma Español.
+4. Marca “Software de terceros” si deseas codecs.
+5. Tipo de instalación: Borrar disco e instalar (solo afecta a la VM).
+6. Configura zona horaria, teclado, usuario y contraseña.
+7. Haz clic en Instalar ahora, confirma cambios.
+5️⃣ Reiniciar y utilizar
+1. Al finalizar instalación, selecciona “Reiniciar ahora”.
+2. Retira la ISO cuando aparezca el mensaje.
+3. Inicia sesión. Tu Linux Mint ya está operativo.
+Consejos y mejores prácticas
+• Snapshots (Instantáneas):
+o En VMware Player es función de la versión Pro, pero puedes
+clonar la VM.
+o En VirtualBox haz clic en Instantánea → Tomar para preservar
+estados.
+• Integración avanzada:
+o Instala VMware Tools o Guest Additions en VirtualBox para
+mejor resolución, carpetas compartidas, portapapeles
+compartido, etc.
+• Recursos de hardware recomendados:
+o Si tienes poca RAM/espacio, usa VirtualBox.
+o Para mejor rendimiento gráfico, VMware es superior.
+o Puedes combinar ambos entornos para experimentación.
+Referencias:
+• Paso 1: Descargar Linux Mint ISO
+o Linux Mint. (s.f.). Download Linux Mint 21.3. Recuperado de
+https://linuxmint.com/download.php
+• Paso 2: Instalar VirtualBox
+o Oracle. (2024). VirtualBox Downloads. Recuperado de
+https://www.virtualbox.org/wiki/Downloads
+• Paso 3: Crear máquina virtual en VirtualBox
+o Oracle. (s.f.). VirtualBox User Manual. Recuperado de
+https://www.virtualbox.org/manual/
+• Paso 4: Instalar VMware Workstation Player
+o VMware. (2024). VMware Workstation Player. Recuperado de
+https://www.vmware.com/products/workstation-player.html
+• Paso 5: Crear máquina virtual en VMware
+o VMware. (2023). Creating a New Virtual Machine in VMware
+Workstation Player. Recuperado de
+https://kb.vmware.com/s/article/2005280
+• Paso 6: Instalar Linux Mint en la máquina virtual
+o Linux Mint. (s.f.). Installation Guide. Recuperado de
+https://linuxmint-installationguide.readthedocs.io/en/latest/
