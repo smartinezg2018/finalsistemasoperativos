@@ -1,14 +1,13 @@
 #include <iostream>
 #include <cstring>
 #include <sstream>
-#include <fcntl.h>      // open()
-#include <unistd.h>     // read(), write(), close()
-#include <sys/stat.h>   // permisos
+#include <fcntl.h>      
+#include <unistd.h>     
+#include <sys/stat.h>   
 #include "structures.h"
 
 using namespace std;
 
-/* AES core functions (no se modifican) */
 void AddRoundKey(unsigned char * state, unsigned char * roundKey) {
     for (int i = 0; i < 16; i++) {
         state[i] ^= roundKey[i];
