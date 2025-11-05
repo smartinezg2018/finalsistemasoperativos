@@ -143,7 +143,7 @@ void compress(const string& filename){
 
 
     int readFile = open(filename.c_str(),O_RDONLY);
-    int writeFile = open("test.bin", O_RDWR | O_CREAT | O_TRUNC, 0666);
+    int writeFile = open("compressed.bin", O_RDWR | O_CREAT | O_TRUNC, 0666);
     unsigned char buffer;
     // struct stat st;
     // stat(filename.c_str(),&st);
@@ -190,7 +190,7 @@ void compress(const string& filename){
 
 void uncompress(const string filename){
     int readFile = open(filename.c_str(),O_RDONLY);
-    int writeFile = open("final.jpeg", O_RDWR | O_CREAT | O_TRUNC, 0666);
+    int writeFile = open("uncompressed.bmp", O_RDWR | O_CREAT | O_TRUNC, 0666);
     unsigned char buffer[2];
     if(read(readFile,&buffer,2)<0)
         return;
@@ -241,8 +241,8 @@ int main(){
     // )";
     // writingFile("plan.bin",encoding(text));
 
-    compress("images (1).jpeg");
-    uncompress("test.bin");
+    compress("lena.bmp");
+    uncompress("compressed.bin");
     // cout<<readFile("test.bin");
 
 
