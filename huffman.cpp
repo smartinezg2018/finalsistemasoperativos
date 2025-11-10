@@ -26,18 +26,21 @@ void deleteTree(HuffmanNode* root) {
 }
 
 // Función auxiliar para generar los códigos recursivamente
-void huffman::generateCodes(HuffmanNode* root, const string& code, map<unsigned char, string>& huffmanCodes) {
+void Huffman::generateCodes(HuffmanNode* root, const string& code, map<unsigned char, string>& huffmanCodes) {
     if (!root) return;
+
+    // Caso especial: si solo hay un símbolo en el árbol
     if (!root->left && !root->right) {
-        huffmanCodes[root->data] = code;
+        huffmanCodes[root->data] = code.empty() ? "0" : code;
         return;
     }
+
     generateCodes(root->left, code + "0", huffmanCodes);
     generateCodes(root->right, code + "1", huffmanCodes);
 }
 
 // Construir el árbol de Huffman
-HuffmanNode* huffman::buildHuffmanTree(const map<unsigned char, unsigned int>& freqs) {
+HuffmanNode* Huffman::buildHuffmanTree(const map<unsigned char, unsigned int>& freqs) {
     priority_queue<HuffmanNode*, vector<HuffmanNode*>, CompareNodes> minHeap;
     for (auto pair : freqs) {
         minHeap.push(new HuffmanNode(pair.first, pair.second));
@@ -58,15 +61,15 @@ HuffmanNode* huffman::buildHuffmanTree(const map<unsigned char, unsigned int>& f
 }
 
 // ------------------------ COMPRESIÓN ------------------------
-void huffman::compress(const std::string& inputFilename) {
-    // --- 1. Verificar archivo de entrada ---
+void Huffman::compress(const std::string& inputFilename) {
+    // 1. Verificar archivo de entrada
     std::ifstream inputFile(inputFilename, std::ios::binary);
     if (!inputFile.is_open()) {
         std::cerr << "Error: No se pudo abrir el archivo de entrada " << inputFilename << std::endl;
         return;
     }
 
-    // ✅ Obtener tamaño original
+    // Obtener tamaño original
     std::uintmax_t originalSize = 0;
     try {
         originalSize = fs::file_size(inputFilename);
@@ -74,7 +77,7 @@ void huffman::compress(const std::string& inputFilename) {
         std::cerr << "Advertencia: No se pudo determinar el tamaño del archivo original." << std::endl;
     }
 
-    // --- 2. Contar frecuencias ---
+    // 2. Contar frecuencias
     std::map<unsigned char, unsigned int> freqs;
     char c;
     while (inputFile.get(c)) {
@@ -87,14 +90,14 @@ void huffman::compress(const std::string& inputFilename) {
         return;
     }
 
-    // --- 3. Construir el árbol ---
+    // 3. Construir el árbol
     HuffmanNode* root = buildHuffmanTree(freqs);
 
-    // --- 4. Generar códigos ---
+    // 4. Generar códigos
     std::map<unsigned char, std::string> huffmanCodes;
     generateCodes(root, "", huffmanCodes);
 
-    // --- 5. Crear archivo comprimido ---
+    // 5. Crear archivo comprimido
     std::string outputFilename = inputFilename + ".huff";
     std::ofstream outputFile(outputFilename, std::ios::binary);
     if (!outputFile.is_open()) {
@@ -104,11 +107,12 @@ void huffman::compress(const std::string& inputFilename) {
         return;
     }
 
-    // --- 6. Escribir cabecera (tabla + padding temporal) ---
+    // 6. Escribir cabecera (tabla de frecuencias)
     unsigned int tableSize = freqs.size();
+    char padding = 0;
+
     outputFile.write(reinterpret_cast<const char*>(&tableSize), sizeof(tableSize));
-    char paddingPlaceholder = 0;
-    outputFile.write(&paddingPlaceholder, sizeof(paddingPlaceholder));
+    outputFile.write(&padding, sizeof(padding));
 
     for (auto const& pair : freqs) {
         unsigned char key = pair.first;
@@ -121,7 +125,7 @@ void huffman::compress(const std::string& inputFilename) {
     inputFile.clear();
     inputFile.seekg(0, std::ios::beg);
 
-    // --- 7. Escribir datos comprimidos ---
+    // 7. Escribir datos comprimidos
     unsigned char buffer = 0;
     int bitCount = 0;
     long long totalBits = 0;
@@ -141,22 +145,22 @@ void huffman::compress(const std::string& inputFilename) {
     }
 
     // Bits restantes + padding
-    char padding = (8 - (totalBits % 8)) % 8;
+    padding = (8 - (totalBits % 8)) % 8;
     if (bitCount > 0) {
         buffer <<= (8 - bitCount);
         outputFile.write(reinterpret_cast<const char*>(&buffer), 1);
     }
 
-    // Actualizar padding en cabecera
+    // Reescribir padding en la cabecera
     outputFile.seekp(sizeof(tableSize));
     outputFile.write(&padding, sizeof(padding));
 
-    // --- 8. Cerrar archivos ---
+    // 8. Cerrar archivos
     inputFile.close();
     outputFile.close();
     deleteTree(root);
 
-    // ✅ Obtener tamaño comprimido
+    // Obtener tamaño comprimido
     std::uintmax_t compressedSize = 0;
     try {
         compressedSize = fs::file_size(outputFilename);
@@ -164,7 +168,7 @@ void huffman::compress(const std::string& inputFilename) {
         std::cerr << "Advertencia: No se pudo determinar el tamaño del archivo comprimido." << std::endl;
     }
 
-    // --- 9. Mostrar resultados ---
+    // 9. Mostrar resultados
     std::cout << "-----------------------------------\n";
     std::cout << "Archivo original:    " << inputFilename << "\n";
     std::cout << "Tamaño original:     " << originalSize << " bytes\n";
@@ -180,7 +184,7 @@ void huffman::compress(const std::string& inputFilename) {
 }
 
 // ------------------------ DESCOMPRESIÓN ------------------------
-void huffman::decompress(const string& inputFilename) {
+void Huffman::decompress(const string& inputFilename) {
     ifstream inputFile(inputFilename, ios::binary);
     if (!inputFile.is_open()) {
         cerr << "Error: No se pudo abrir el archivo " << inputFilename << endl;
@@ -226,10 +230,9 @@ void huffman::decompress(const string& inputFilename) {
 
     // Leer byte por byte y procesar bits
     while (inputFile.get(byte) && charsWritten < totalChars) {
-        int bitsToRead = 8;
-        if (inputFile.peek() == EOF) {
-            bitsToRead = 8 - padding;
-        }
+        bool isLastByte = (inputFile.peek() == EOF);
+        int bitsToRead = isLastByte ? 8 - padding : 8;
+
         for (int j = 7; j >= 8 - bitsToRead; --j) {
             int bit = (byte >> j) & 1;
             currentNode = bit ? currentNode->right : currentNode->left;
