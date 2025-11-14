@@ -34,7 +34,7 @@ map<int,string> lzw::asiicMapDec(){
     
 }
 
-#include <sstream>
+
 
 void lzw::compress(const string& filename){
 // en este metodo vamos a comprimir el archivo que sea, solo recibiendo su nombre;
@@ -84,7 +84,7 @@ void lzw::compress(const string& filename){
     unsigned char second_half = num & 0xFF;
     unsigned char first_half = (num >> 8) & 0xFF;
     write(writeFile, &second_half, 1);
-    write(writeFile, &first_half, 1);
+    write(writeFile, &first_half, 1);   
     close(writeFile);
     close(readFile);
 

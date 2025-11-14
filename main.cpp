@@ -1,12 +1,14 @@
-#include<iostream>
+#include <iostream>
+#include <string>
+#include <vector>
+// #include "compressor.hpp"
+// #include "decompressor.hpp"
 #include "lzw.h"
 
-using namespace std;
-
-int main(){
+int main() {
     lzw lzw;
+    lzw.compress("lena.bmp");
 
-    // lzw.compress("lena.bmp");
-    lzw.decompress("lena.bmp.lzw");
+    return 0;
 
 }
