@@ -83,14 +83,12 @@ void FinalRound(unsigned char* state, unsigned char* key) {
     AddRoundKey(state, key);
 }
 
-void AESEncrypt(unsigned char* message, unsigned char* expandedKey, unsigned char* encryptedMessage) {
+void AESEncrypt(unsigned char* message, unsigned char* expandedKey, unsigned char* encryptedMessage, int numberOfRounds) {
     unsigned char state[16];
     
     for (int i = 0; i < 16; i++) {
         state[i] = message[i];
     }
-    
-    int numberOfRounds = 9;
     
     AddRoundKey(state, expandedKey);
     
