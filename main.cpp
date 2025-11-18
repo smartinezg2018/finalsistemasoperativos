@@ -1,14 +1,16 @@
 #include <iostream>
-#include <string>
 #include <vector>
-// #include "compressor.hpp"
-// #include "decompressor.hpp"
+#include <string>
 #include "lzw.h"
+#include "filePartitioner.h"
+
+using namespace std;
 
 int main() {
-    lzw lzw;
-    lzw.compress("lena.bmp");
+    filePartitioner partitioner;
+    partitioner.compressLZW("greenland_grid_velo.bmp");
+
+    partitioner.decompressLZW("greenland_grid_velo.bmp.lzw");
 
     return 0;
-
 }

@@ -9,6 +9,8 @@
 #include<algorithm>
 #include<string>
 #include "lzw.h"
+#include<map>
+#include <cstdint>
 using namespace std;
 
 
@@ -34,120 +36,143 @@ map<int,string> lzw::asiicMapDec(){
     
 }
 
+struct BitWriter {
+    vector<unsigned char> data;
+    uint32_t bitBuffer = 0;
+    int bitCount = 0;
 
+    void writeBits(uint32_t value, int bits) {
+        bitBuffer = (bitBuffer << bits) | value;
+        bitCount += bits;
 
-void lzw::compress(const string& filename){
-// en este metodo vamos a comprimir el archivo que sea, solo recibiendo su nombre;
-
-    int readFile = open(filename.c_str(),O_RDONLY);
-    string tempWrite = filename+".lzw";
-    int writeFile = open(tempWrite.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0666);
-
-    char zero = 0;
-    write(writeFile, &zero, 1);
-    write(writeFile,filename.data(),filename.size());
-    write(writeFile, &zero, 1);
-
-    unsigned char buffer;
-
-    if(read(readFile,&buffer,1)<0)
-        return;
-
-    map<string, int> table = asiicMapEnc();
-    string p = "", c = "";
-    p += buffer;
-    // cout<<"p;"<<p<<endl;
-    int code = 256;
-    while(read(readFile,&buffer,1) > 0){       
-        c = buffer;
-        if (table.find(p + c) != table.end()) {
-            p = p + c;
+        while (bitCount >= 8) {
+            bitCount -= 8;
+            unsigned char byte = (bitBuffer >> bitCount) & 0xFF;
+            data.push_back(byte);
         }
-        else {
-            // output_code.push_back(table[p]);
-            int num = table[p];
-            unsigned char second_half = num & 0xFF;
-            unsigned char first_half = (num >> 8) & 0xFF;
-            write(writeFile, &second_half, 1);
-            write(writeFile, &first_half, 1);
-            // cout<<table[p]<<" = "<<num<<endl;
-            if(table.size()<65536)
-                table[p + c] = code;
-
-            code++;
-            p = c;
-        }
-        c = "";
-        
-    }
-    int num = table[p];
-    unsigned char second_half = num & 0xFF;
-    unsigned char first_half = (num >> 8) & 0xFF;
-    write(writeFile, &second_half, 1);
-    write(writeFile, &first_half, 1);   
-    close(writeFile);
-    close(readFile);
-
-}
-
-void lzw::decompress(const string filename){
-    int readFile = open(filename.c_str(),O_RDONLY);
-
-    unsigned char buffer[2];
-
-    if(readFile<0)
-        return;
-    char zero = 0;
-    string name = "";
-    unsigned char nameBuffer;
-    read(readFile, &nameBuffer, 1);
-    while(read(readFile, &nameBuffer, 1) > 0 && nameBuffer != 0){
-        name.push_back(nameBuffer);
-    }
-    
-    
-    
-    
-    int writeFile = open(name.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0666);
-    
-    read(readFile,&buffer,2);
-    string final = "";
-    map<int, string> table = asiicMapDec();
-    int old = (buffer[1] << 8) | buffer[0], n;
-    string s = table[old];
-    write(writeFile,s.data(),s.size());
-    string c = "";
-    c += s[0];
-    final+=s;
-    int count = 256;
-
-    while(read(readFile,&buffer,2) > 0){
-
-        n = (buffer[1] << 8) | buffer[0];
-        if (table.find(n) == table.end()) {
-            s = table[old];
-            s = s + c;
-        }
-        else {
-            s = table[n];
-        }
-        // final+=s;
-        write(writeFile,s.data(),s.size());
-        c = "";
-        c += s[0];
-        table[count] = table[old] + c;
-        count++;
-        old = n;
-        
     }
 
+    vector<unsigned char> finish() {
+        if (bitCount > 0) {
+            unsigned char byte = (bitBuffer << (8 - bitCount)) & 0xFF;
+            data.push_back(byte);
+        }
+        return data;
+    }
+};
 
-    close(readFile);
-    close(writeFile);
+struct BitReader {
+    const unsigned char *input;
+    size_t size;
+    size_t pos = 0;
+    uint32_t bitBuffer = 0;
+    int bitCount = 0;
 
+    BitReader(const unsigned char* i, size_t s) : input(i), size(s) {}
 
+    bool readBits(uint32_t &value, int bits) {
+        while (bitCount < bits) {
+            if (pos >= size) return false;
+            bitBuffer = (bitBuffer << 8) | input[pos++];
+            bitCount += 8;
+        }
+
+        bitCount -= bits;
+        value = (bitBuffer >> bitCount) & ((1 << bits) - 1);
+        return true;
+    }
+};
+
+// **Correction: Use 12 bits for LZW codes, max dictionary size 4096.**
+vector<unsigned char> lzw::compress(const unsigned char *input, size_t size) {
+    if (size == 0) return {};
+
+    // Initial dictionary: 0-255 ASCII
+    map<string, int> table = asiicMapEnc(); 
     
+    // Start of dictionary expansion at code 256
+    int nextCode = 256; 
+    const int MAX_CODES = 4096*2; // 12-bit LZW limit
+
+    BitWriter writer;
+    string currentString(1, input[0]);
+
+    for (size_t i = 1; i < size; i++) {
+        string nextChar(1, input[i]);
+        string newString = currentString + nextChar;
+
+        if (table.count(newString)) {
+            currentString = newString;
+        } else {
+            // Output the code for the longest found prefix (currentString)
+            writer.writeBits(table[currentString], 12);
+
+            // Add new pattern to dictionary if there is space
+            if (nextCode < MAX_CODES) {
+                table[newString] = nextCode++;
+            }
+            
+            // Start over with the new character
+            currentString = nextChar;
+        }
+    }
+
+    // Output the code for the last string
+    writer.writeBits(table[currentString], 12); 
+
+    // Return the bit-packed compressed data
+    return writer.finish();
 }
 
 
+// **Correction: Use BitReader to correctly parse 12-bit codes.**
+vector<unsigned char> lzw::decompress(const unsigned char* input, size_t length) {
+    if (length == 0) return {};
 
+    // Initial dictionary: 0-255 ASCII
+    map<int, string> dictionary = asiicMapDec();
+    
+    // Start of dictionary expansion at code 256
+    int nextCode = 256;
+    const int MAX_CODES = 4096*2; // 12-bit LZW limit
+
+    BitReader reader(input, length);
+    vector<unsigned char> output;
+    uint32_t prevCode;
+
+    // Read first code
+    if (!reader.readBits(prevCode, 12)) return {};
+
+    string prevString = dictionary[prevCode];
+    output.insert(output.end(), prevString.begin(), prevString.end());
+
+    uint32_t currentCode;
+    while (reader.readBits(currentCode, 12)) {
+        string currentString;
+
+        if (dictionary.count(currentCode)) {
+            // Case 1: Code is in dictionary
+            currentString = dictionary[currentCode];
+        } else if (currentCode == nextCode) {
+            // Case 2 (KLK): Code is P + first char of P
+            currentString = prevString + prevString[0];
+        } else {
+            // Error: Invalid code (should not happen in a valid LZW stream)
+            // For robustness, you might stop or throw an exception.
+            break; 
+        }
+
+        // Output current string
+        output.insert(output.end(), currentString.begin(), currentString.end());
+
+        // Add new entry to dictionary: prevString + first char of currentString
+        if (nextCode < MAX_CODES) {
+            string newEntry = prevString + currentString[0];
+            dictionary[nextCode++] = newEntry;
+        }
+
+        prevString = currentString;
+    }
+
+    return output;
+}

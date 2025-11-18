@@ -10,6 +10,7 @@
 #include <sys/stat.h>
 #include <algorithm>
 #include <string>
+#include <map>
 
 using namespace std;
 
@@ -18,8 +19,8 @@ public:
 
     map<string, int> asiicMapEnc();
     map<int, string> asiicMapDec();
-    void compress(const string& filename);
-    void decompress(const string filename);
+    vector<unsigned char> compress(const unsigned char *input,size_t size);
+    vector<unsigned char> decompress(const unsigned char *input,size_t size);
 };
 
 #endif // LZW_H
