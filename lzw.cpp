@@ -92,7 +92,7 @@ vector<unsigned char> lzw::compress(const unsigned char *input, size_t size) {
     
     // Start of dictionary expansion at code 256
     int nextCode = 256; 
-    const int MAX_CODES = 4096*2; // 12-bit LZW limit
+    const int MAX_CODES = 4096; // 12-bit LZW limit
 
     BitWriter writer;
     string currentString(1, input[0]);
@@ -134,7 +134,7 @@ vector<unsigned char> lzw::decompress(const unsigned char* input, size_t length)
     
     // Start of dictionary expansion at code 256
     int nextCode = 256;
-    const int MAX_CODES = 4096*2; // 12-bit LZW limit
+    const int MAX_CODES = 4096; // 12-bit LZW limit
 
     BitReader reader(input, length);
     vector<unsigned char> output;
