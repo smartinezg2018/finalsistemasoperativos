@@ -15,6 +15,14 @@
 #include <thread>
 #include <mutex>
 #include <atomic>
+#ifdef _WIN32
+#include <io.h>
+#ifndef O_BINARY
+#define O_BINARY 0
+#endif
+#else
+#define O_BINARY 0
+#endif
 
 using namespace std;
 
@@ -68,7 +76,7 @@ void filePartitioner::compressLZW(const string& filename, size_t chunkSize) {
     size_t fileSize = st.st_size;
     if (fileSize == 0) return;
 
-    int fd = open(filename.c_str(), O_RDONLY);
+    int fd = open(filename.c_str(), O_RDONLY | O_BINARY);
     if (fd < 0) {
         perror("open");
         return;
@@ -120,7 +128,7 @@ void filePartitioner::compressLZW(const string& filename, size_t chunkSize) {
     }
 
     string outname = filename + ".lzw";
-    int outfd = open(outname.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0666);
+    int outfd = open(outname.c_str(), O_RDWR | O_CREAT | O_TRUNC | O_BINARY, 0666);
     if (outfd < 0) {
         perror("open out");
         delete[] fileBuf;
@@ -155,7 +163,7 @@ void filePartitioner::decompressLZW(const string& filename) {
     }
     size_t fileSize = st.st_size;
 
-    int fd = open(filename.c_str(), O_RDONLY);
+    int fd = open(filename.c_str(), O_RDONLY | O_BINARY);
     if (fd < 0) {
         perror("open");
         return;
@@ -184,7 +192,7 @@ void filePartitioner::decompressLZW(const string& filename) {
             outname += ".out";
         }
 
-        int outfd = open(outname.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0666);
+        int outfd = open(outname.c_str(), O_RDWR | O_CREAT | O_TRUNC | O_BINARY, 0666);
         if (outfd < 0) {
             perror("open out");
             delete[] fileBuf;
@@ -261,7 +269,7 @@ void filePartitioner::decompressLZW(const string& filename) {
         outname += ".out";
     }
 
-    int outfd = open(outname.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0666);
+    int outfd = open(outname.c_str(), O_RDWR | O_CREAT | O_TRUNC | O_BINARY, 0666);
     if (outfd < 0) {
         perror("open out");
         delete[] fileBuf;

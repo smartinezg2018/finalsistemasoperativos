@@ -22,7 +22,7 @@ GSEA es una herramienta de línea de comandos desarrollada en C++ que permite re
 - **Huffman**: Codificación adaptativa con árboles de Huffman, soporte para chunks y procesamiento paralelo
 
 ### Algoritmos de Encriptación
-- **AES-128**: Encriptación simétrica de alto nivel de seguridad
+- **Vigenère**: Cifrado de sustitución polialfabética con clave repetida
 
 ### Funcionalidades Avanzadas
 - ✅ Procesamiento de archivos individuales y directorios completos
@@ -45,16 +45,17 @@ GSEA es una herramienta de línea de comandos desarrollada en C++ que permite re
 make all
 ```
 
-Esto generará tres ejecutables:
+Esto generará dos ejecutables:
 - `main` / `main.exe`: Programa con menú interactivo
 - `gsea` / `gsea.exe`: Herramienta CLI completa
-- `aes_tool` / `aes_tool.exe`: Herramienta específica para AES
 
 ### Limpiar archivos compilados
 
 ```bash
 make clean
 ```
+
+Esto eliminará todos los archivos objeto y ejecutables generados.
 
 ## Uso
 
@@ -98,9 +99,9 @@ Las operaciones pueden combinarse (ej: `-ce` para comprimir y encriptar).
 - `-i, --input PATH`: Archivo o directorio de entrada (requerido)
 - `-o, --output PATH`: Archivo o directorio de salida (requerido)
 - `-k, --key KEY`: Clave para encriptación/desencriptación
-  - Puede ser un archivo con 16 bytes o 32 caracteres hexadecimales
+  - Puede ser texto directo o ruta a un archivo con la clave
 - `--comp-alg ALG`: Algoritmo de compresión (`lzw` o `huffman`, default: `lzw`)
-- `--enc-alg ALG`: Algoritmo de encriptación (`aes`, default: `aes`)
+- `--enc-alg ALG`: Algoritmo de encriptación (`vigenere`, default: `vigenere`)
 - `-h, --help`: Mostrar ayuda
 
 ## Ejemplos de Uso
@@ -131,28 +132,28 @@ Las operaciones pueden combinarse (ej: `-ce` para comprimir y encriptar).
 ### Encriptación
 
 ```bash
-# Encriptar con clave desde archivo
-./gsea -e -i documento.txt -o documento.enc -k AES/keyfile.txt
+# Encriptar con clave como texto
+./gsea -e -i documento.txt -o documento.enc -k "mi_clave_secreta"
 
-# Encriptar con clave hexadecimal
-./gsea -e -i documento.txt -o documento.enc -k 0123456789abcdef0123456789abcdef
+# Encriptar con clave desde archivo
+./gsea -e -i documento.txt -o documento.enc -k keyfile.txt
 ```
 
 ### Desencriptación
 
 ```bash
 # Desencriptar archivo
-./gsea -u -i documento.enc -o documento.txt -k AES/keyfile.txt
+./gsea -u -i documento.enc -o documento.txt -k "mi_clave_secreta"
 ```
 
 ### Operaciones Combinadas
 
 ```bash
 # Comprimir y encriptar (primero comprime, luego encripta)
-./gsea -ce -i documento.txt -o documento.enc.lzw -k AES/keyfile.txt --comp-alg lzw
+./gsea -ce -i documento.txt -o documento.enc.lzw -k "mi_clave" --comp-alg lzw
 
 # Desencriptar y descomprimir (primero desencripta, luego descomprime)
-./gsea -ud -i documento.enc.lzw -o documento.txt -k AES/keyfile.txt --comp-alg lzw
+./gsea -ud -i documento.enc.lzw -o documento.txt -k "mi_clave" --comp-alg lzw
 ```
 
 ### Procesamiento de Directorios
@@ -168,10 +169,6 @@ El programa detecta automáticamente si la entrada es un directorio y procesa to
 
 ```
 finalSistemasOperativos/
-├── AES/                  # Implementación de AES
-│   ├── structures.cpp
-│   ├── aes_encrypt.cpp
-│   └── aes_decrypt.cpp
 ├── archivosPrueba/      # Archivos de prueba
 ├── main.cpp             # Programa principal con menú
 ├── menu.cpp             # Implementación del menú interactivo
@@ -179,7 +176,10 @@ finalSistemasOperativos/
 ├── filePartitioner.cpp  # Manejo de chunks y paralelismo para LZW
 ├── lzw.cpp              # Implementación de LZW
 ├── huffman.cpp          # Implementación de Huffman con chunks
+├── vigenere.cpp         # Implementación de Vigenère
+├── vigenere.h           # Encabezado de Vigenère
 ├── fileEncrypting.cpp   # Funciones de alto nivel para encriptación
+├── fileEncrypting.h     # Encabezado de fileEncrypting
 ├── Makefile             # Archivo de compilación
 └── README.md            # Este archivo
 ```
@@ -206,14 +206,15 @@ finalSistemasOperativos/
 
 ## Notas Importantes
 
-1. **Claves de Encriptación**: La clave debe tener exactamente 16 bytes. Puede proporcionarse como:
-   - Archivo binario con 16 bytes
-   - String hexadecimal de 32 caracteres
+1. **Claves de Encriptación**: La clave puede ser cualquier texto. Puede proporcionarse como:
+   - Texto directo (ej: `"mi_clave_secreta"`)
+   - Archivo de texto con la clave (se lee el contenido completo del archivo)
 
 2. **Extensiones de Archivos**:
    - LZW: `.lzw`
    - Huffman: `.huff`
    - Encriptado: `.enc`
+   - Desencriptado: `.dec`
 
 3. **Orden de Operaciones Combinadas**:
    - `-ce` (comprimir y encriptar): Primero comprime, luego encripta
@@ -223,6 +224,3 @@ finalSistemasOperativos/
 
 Este proyecto fue desarrollado como trabajo académico para la clase de Sistemas Operativos de la Universidad EAFIT.
 
----
-
-**Universidad EAFIT - 2024**

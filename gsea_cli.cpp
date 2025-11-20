@@ -14,16 +14,11 @@
 #include <thread>
 #include <mutex>
 #include <atomic>
-#include "AES/structures.h"
 #include "fileEncrypting.h"
 #include "filePartitioner.h"
 #include "huffman.h"
 
 using namespace std;
-
-// Forward declarations
-extern int encryptFile(const char* inputFile, const char* outputFile, unsigned char* expandedKey);
-extern int decryptFile(const char* inputFile, const char* outputFile, unsigned char* expandedKey);
 
 static void print_usage(const char *progname) {
     fprintf(stderr,
@@ -38,38 +33,44 @@ static void print_usage(const char *progname) {
         "  -i, --input PATH     Archivo o directorio de entrada (requerido)\n"
         "  -o, --output PATH    Archivo o directorio de salida (requerido)\n"
         "  -k, --key KEY        Clave para encriptación/desencriptación\n"
-        "                       Puede ser archivo o 32 caracteres hexadecimales\n"
+        "                       Puede ser texto o ruta a archivo con la clave\n"
         "  --comp-alg ALG       Algoritmo de compresión: lzw o huffman (default: lzw)\n"
-        "  --enc-alg ALG        Algoritmo de encriptación: aes (default: aes)\n\n"
+        "  --enc-alg ALG        Algoritmo de encriptación: vigenere (default: vigenere)\n\n"
         "EJEMPLOS:\n"
         "  %s -c -i archivo.txt -o archivo.lzw --comp-alg lzw\n"
-        "  %s -e -i archivo.txt -o archivo.enc -k AES/keyfile.txt\n"
-        "  %s -ce -i archivo.txt -o archivo.enc.lzw -k AES/keyfile.txt --comp-alg huffman\n"
+        "  %s -e -i archivo.txt -o archivo.enc -k \"mi_clave_secreta\"\n"
+        "  %s -e -i archivo.txt -o archivo.enc -k keyfile.txt\n"
+        "  %s -ce -i archivo.txt -o archivo.enc.lzw -k \"mi_clave\" --comp-alg huffman\n"
         "  %s -d -i archivo.lzw -o archivo.txt --comp-alg lzw\n",
         progname, progname, progname, progname, progname);
 }
 
-static int parse_hex_key(const char *hex, unsigned char *out16) {
-    size_t len = strlen(hex);
-    if (len != 32) return -1;
+// Función para leer la clave desde archivo o usar como texto
+static string getKey(const char* keyopt) {
+    if (!keyopt) return "";
     
-    for (int i = 0; i < 16; ++i) {
-        unsigned int v;
-        if (sscanf(hex + 2*i, "%2x", &v) != 1) return -1;
-        out16[i] = (unsigned char)v;
+    // Intentar leer como archivo primero
+    int fd = open(keyopt, O_RDONLY);
+    if (fd >= 0) {
+        struct stat st;
+        if (fstat(fd, &st) == 0 && st.st_size > 0) {
+            char* buffer = new char[st.st_size + 1];
+            ssize_t r = read(fd, buffer, st.st_size);
+            close(fd);
+            if (r > 0) {
+                buffer[r] = '\0';
+                string key(buffer, r);
+                delete[] buffer;
+                return key;
+            }
+            delete[] buffer;
+        } else {
+            close(fd);
+        }
     }
-    return 0;
-}
-
-static int read_key_from_file(const char *path, unsigned char *out16) {
-    int fd = open(path, O_RDONLY);
-    if (fd < 0) return -1;
     
-    ssize_t r = read(fd, out16, 16);
-    close(fd);
-    
-    if (r != 16) return -1;
-    return 0;
+    // Si no es archivo, usar como texto directamente
+    return string(keyopt);
 }
 
 // Función para verificar si una ruta es un directorio
@@ -179,7 +180,7 @@ static string generateOutputFilename(const string& inputFile, const string& outp
 static int processFile(const char* inputPath, const char* outputPath,
                       bool compress, bool decompress, bool encrypt, bool decrypt,
                       const char* compAlg, const char* encAlg,
-                      unsigned char* expandedKey) {
+                      const string& key) {
     
     string tempFile1, tempFile2;
     
@@ -208,7 +209,7 @@ static int processFile(const char* inputPath, const char* outputPath,
         }
         
         // Paso 2: Encriptar el archivo comprimido
-        if (encryptFile(tempFile1.c_str(), outputPath, expandedKey) != 0) {
+        if (encryptFile(tempFile1.c_str(), outputPath, key) != 0) {
             fprintf(stderr, "Error al encriptar archivo comprimido\n");
             unlink(tempFile1.c_str());
             return 1;
@@ -232,7 +233,7 @@ static int processFile(const char* inputPath, const char* outputPath,
         }
         tempFile1 = tempTest;
         
-        if (decryptFile(inputPath, tempFile1.c_str(), expandedKey) != 0) {
+        if (decryptFile(inputPath, tempFile1.c_str(), key) != 0) {
             fprintf(stderr, "Error al desencriptar archivo\n");
             unlink(tempFile1.c_str());
             return 1;
@@ -331,11 +332,11 @@ static int processFile(const char* inputPath, const char* outputPath,
     }
     
     if (encrypt) {
-        return encryptFile(inputPath, outputPath, expandedKey);
+        return encryptFile(inputPath, outputPath, key);
     }
     
     if (decrypt) {
-        return decryptFile(inputPath, outputPath, expandedKey);
+        return decryptFile(inputPath, outputPath, key);
     }
     
     return 1;
@@ -350,7 +351,7 @@ int main(int argc, char **argv) {
     char *output = NULL;
     char *keyopt = NULL;
     const char *compAlg = "lzw";  // default
-    const char *encAlg = "aes";   // default
+    const char *encAlg = "vigenere";   // default
     
     // Opciones largas
     static struct option long_options[] = {
@@ -406,8 +407,8 @@ int main(int argc, char **argv) {
                     }
                 } else if (strcmp(long_options[option_index].name, "enc-alg") == 0) {
                     encAlg = optarg;
-                    if (strcmp(encAlg, "aes") != 0) {
-                        fprintf(stderr, "Error: Algoritmo de encriptación debe ser 'aes'\n");
+                    if (strcmp(encAlg, "vigenere") != 0) {
+                        fprintf(stderr, "Error: Algoritmo de encriptación debe ser 'vigenere'\n");
                         return 1;
                     }
                 }
@@ -445,8 +446,7 @@ int main(int argc, char **argv) {
     }
     
     // Validar clave si es necesario
-    unsigned char key[16];
-    unsigned char expandedKey[176];
+    string key;
     bool keyNeeded = encrypt || decrypt;
     
     if (keyNeeded) {
@@ -455,15 +455,9 @@ int main(int argc, char **argv) {
             return 1;
         }
         
-        // Intentar leer como archivo primero
-        if (read_key_from_file(keyopt, key) == 0) {
-            KeyExpansion(key, expandedKey);
-        }
-        // Intentar como hex string
-        else if (strlen(keyopt) == 32 && parse_hex_key(keyopt, key) == 0) {
-            KeyExpansion(key, expandedKey);
-        } else {
-            fprintf(stderr, "Error: Formato de clave inválido. Debe ser un archivo con 16 bytes o 32 caracteres hexadecimales\n");
+        key = getKey(keyopt);
+        if (key.empty()) {
+            fprintf(stderr, "Error: No se pudo leer la clave. Debe ser texto o ruta a archivo válido\n");
             return 1;
         }
     }
@@ -532,7 +526,7 @@ int main(int argc, char **argv) {
                     
                     int result = processFile(file.c_str(), outputFile.c_str(), compress, decompress,
                                             encrypt, decrypt, compAlg, encAlg, 
-                                            keyNeeded ? expandedKey : NULL);
+                                            keyNeeded ? key : string(""));
                     
                     if (result == 0) {
                         successCount++;
@@ -559,7 +553,7 @@ int main(int argc, char **argv) {
     } else {
         // Procesar archivo individual
         int result = processFile(input, output, compress, decompress, encrypt, decrypt,
-                                compAlg, encAlg, keyNeeded ? expandedKey : NULL);
+                                compAlg, encAlg, keyNeeded ? key : string(""));
         
         if (result == 0) {
             printf("Operación completada exitosamente\n");

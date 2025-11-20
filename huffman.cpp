@@ -10,6 +10,14 @@
 #include <cstring>
 #include <thread>
 #include <algorithm>
+#ifdef _WIN32
+#include <io.h>
+#ifndef O_BINARY
+#define O_BINARY 0
+#endif
+#else
+#define O_BINARY 0
+#endif
 
 using namespace std;
 
@@ -195,7 +203,7 @@ static CompressedChunk compressChunk(const unsigned char* data, size_t size) {
 void Huffman::compress(const std::string& inputFilename) {
     const size_t chunkSize = 1 << 20; // 1MB por defecto
     // 1. Abrir archivo de entrada
-    int fd_in = open(inputFilename.c_str(), O_RDONLY);
+    int fd_in = open(inputFilename.c_str(), O_RDONLY | O_BINARY);
     if (fd_in < 0) {
         std::cerr << "Error: No se pudo abrir el archivo de entrada " << inputFilename << std::endl;
         return;
@@ -260,7 +268,7 @@ void Huffman::compress(const std::string& inputFilename) {
 
     // 5. Crear archivo comprimido
     std::string outputFilename = inputFilename + ".huff";
-    int fd_out = open(outputFilename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    int fd_out = open(outputFilename.c_str(), O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, 0644);
     if (fd_out < 0) {
         std::cerr << "Error: No se pudo crear el archivo " << outputFilename << std::endl;
         delete[] fileBuffer;
@@ -355,7 +363,7 @@ static vector<unsigned char> decompressChunk(const unsigned char* compressedData
 // ------------------------ DESCOMPRESIÓN ------------------------
 void Huffman::decompress(const string& inputFilename) {
     // 1. Abrir archivo de entrada
-    int fd_in = open(inputFilename.c_str(), O_RDONLY);
+    int fd_in = open(inputFilename.c_str(), O_RDONLY | O_BINARY);
     if (fd_in < 0) {
         cerr << "Error: No se pudo abrir el archivo " << inputFilename << endl;
         return;
@@ -475,7 +483,7 @@ void Huffman::decompress(const string& inputFilename) {
             outputFilename += ".out";
         }
         
-        int fd_out = open(outputFilename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        int fd_out = open(outputFilename.c_str(), O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, 0644);
         if (fd_out < 0) {
             cerr << "Error al crear archivo de salida." << endl;
             return;
@@ -530,7 +538,7 @@ void Huffman::decompress(const string& inputFilename) {
     }
 
     string outputFilename = inputFilename.substr(0, inputFilename.find_last_of("."));
-    int fd_out = open(outputFilename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    int fd_out = open(outputFilename.c_str(), O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, 0644);
     if (fd_out < 0) {
         cerr << "Error al crear archivo de salida." << endl;
         close(fd_in);

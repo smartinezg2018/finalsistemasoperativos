@@ -4,60 +4,72 @@
 #include <cstring>
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/stat.h>
 #include "filePartitioner.h"
 #include "huffman.h"
-#include "AES/structures.h"
 #include "fileEncrypting.h"
 
 using namespace std;
 
-// Función auxiliar para leer la clave AES
-static int parse_hex_key(const char *hex, unsigned char *out16) {
-    size_t len = strlen(hex);
-    if (len != 32) return -1;
-    
-    for (int i = 0; i < 16; ++i) {
-        unsigned int v;
-        if (sscanf(hex + 2*i, "%2x", &v) != 1) return -1;
-        out16[i] = (unsigned char)v;
-    }
-    return 0;
-}
-
-static int read_key_from_file(const char *path, unsigned char *out16) {
+// Función auxiliar para leer la clave desde archivo
+static string read_key_from_file(const char *path) {
     int fd = open(path, O_RDONLY);
-    if (fd < 0) return -1;
+    if (fd < 0) return "";
     
-    ssize_t r = read(fd, out16, 16);
+    struct stat st;
+    if (fstat(fd, &st) < 0) {
+        close(fd);
+        return "";
+    }
+    
+    size_t fileSize = st.st_size;
+    if (fileSize == 0) {
+        close(fd);
+        return "";
+    }
+    
+    char* buffer = new char[fileSize + 1];
+    ssize_t r = read(fd, buffer, fileSize);
     close(fd);
     
-    if (r != 16) return -1;
-    return 0;
+    if (r <= 0) {
+        delete[] buffer;
+        return "";
+    }
+    
+    buffer[r] = '\0';
+    string key(buffer, r);
+    delete[] buffer;
+    return key;
 }
 
-// Función para obtener y expandir la clave AES
-bool getAESKey(unsigned char* expandedKey) {
+// Función para obtener la clave Vigenère
+string getVigenereKey() {
     string keyInput;
-    cout << "\nIngrese la ruta al archivo de clave (AES/keyfile.txt) o una clave hexadecimal de 32 caracteres: ";
+    cout << "\nIngrese la clave (texto o ruta a archivo con la clave): ";
     cin.ignore();
     getline(cin, keyInput);
     
-    unsigned char key[16];
+    if (keyInput.empty()) {
+        cout << "Error: La clave no puede estar vacía." << endl;
+        return "";
+    }
     
     // Intentar leer como archivo primero
-    if (read_key_from_file(keyInput.c_str(), key) == 0) {
-        KeyExpansion(key, expandedKey);
-        return true;
+    // Verificar si el archivo existe antes de intentar leerlo
+    struct stat st;
+    if (stat(keyInput.c_str(), &st) == 0 && S_ISREG(st.st_mode)) {
+        // Es un archivo, intentar leerlo
+        string key = read_key_from_file(keyInput.c_str());
+        if (!key.empty()) {
+            return key;
+        }
+        // Si no se pudo leer el archivo, usar el nombre del archivo como clave
+        return keyInput;
     }
-    // Intentar como hex string
-    else if (keyInput.length() == 32 && parse_hex_key(keyInput.c_str(), key) == 0) {
-        KeyExpansion(key, expandedKey);
-        return true;
-    }
-    else {
-        cout << "Error: Formato de clave inválido. Debe ser un archivo con 16 bytes o 32 caracteres hexadecimales." << endl;
-        return false;
-    }
+    
+    // Si no es archivo, usar el texto directamente como clave
+    return keyInput;
 }
 
 // Función para encriptar un archivo
@@ -69,12 +81,12 @@ void encryptFileMenu() {
     cout << "Ingrese el archivo de salida: ";
     cin >> outputFile;
     
-    unsigned char expandedKey[176];
-    if (!getAESKey(expandedKey)) {
+    string key = getVigenereKey();
+    if (key.empty()) {
         return;
     }
     
-    if (encryptFile(inputFile.c_str(), outputFile.c_str(), expandedKey) == 0) {
+    if (encryptFile(inputFile.c_str(), outputFile.c_str(), key) == 0) {
         cout << "\n✓ Archivo encriptado exitosamente: " << outputFile << endl;
     } else {
         cout << "\n✗ Error al encriptar el archivo." << endl;
@@ -90,12 +102,12 @@ void decryptFileMenu() {
     cout << "Ingrese el archivo de salida: ";
     cin >> outputFile;
     
-    unsigned char expandedKey[176];
-    if (!getAESKey(expandedKey)) {
+    string key = getVigenereKey();
+    if (key.empty()) {
         return;
     }
     
-    if (decryptFile(inputFile.c_str(), outputFile.c_str(), expandedKey) == 0) {
+    if (decryptFile(inputFile.c_str(), outputFile.c_str(), key) == 0) {
         cout << "\n✓ Archivo desencriptado exitosamente: " << outputFile << endl;
     } else {
         cout << "\n✗ Error al desencriptar el archivo." << endl;
@@ -179,13 +191,13 @@ void encryptAndCompress() {
     
     // Primero encriptar
     encryptedFile = inputFile + ".enc";
-    unsigned char expandedKey[176];
-    if (!getAESKey(expandedKey)) {
+    string key = getVigenereKey();
+    if (key.empty()) {
         return;
     }
     
     cout << "\nEncriptando archivo..." << endl;
-    if (::encryptFile(inputFile.c_str(), encryptedFile.c_str(), expandedKey) != 0) {
+    if (::encryptFile(inputFile.c_str(), encryptedFile.c_str(), key) != 0) {
         cout << "\n✗ Error al encriptar el archivo." << endl;
         return;
     }
@@ -255,13 +267,13 @@ void decryptAndDecompress() {
     
     // Luego desencriptar
     decryptedFile = decompressedFile + ".dec";
-    unsigned char expandedKey[176];
-    if (!getAESKey(expandedKey)) {
+    string key = getVigenereKey();
+    if (key.empty()) {
         return;
     }
     
     cout << "\nDesencriptando archivo..." << endl;
-    if (::decryptFile(decompressedFile.c_str(), decryptedFile.c_str(), expandedKey) == 0) {
+    if (::decryptFile(decompressedFile.c_str(), decryptedFile.c_str(), key) == 0) {
         cout << "✓ Archivo desencriptado: " << decryptedFile << endl;
         cout << "\n✓ Proceso completado: " << decryptedFile << endl;
     } else {
