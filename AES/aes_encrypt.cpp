@@ -92,11 +92,12 @@ void AESEncrypt(unsigned char* message, unsigned char* expandedKey, unsigned cha
     
     AddRoundKey(state, expandedKey);
     
-    for (int i = 0; i < numberOfRounds; i++) {
+    // Para AES-128: numberOfRounds = 10, pero hacemos 9 rounds normales (1-9) y luego FinalRound (10)
+    for (int i = 0; i < numberOfRounds - 1; i++) {
         Round(state, expandedKey + (16 * (i + 1)));
     }
     
-    FinalRound(state, expandedKey + 160);
+    FinalRound(state, expandedKey + (numberOfRounds * 16));
     
     for (int i = 0; i < 16; i++) {
         encryptedMessage[i] = state[i];
