@@ -13,7 +13,7 @@ extern int encryptFile(const char* inputFile, const char* outputFile, unsigned c
 extern int decryptFile(const char* inputFile, const char* outputFile, unsigned char* expandedKey);
 
 static void print_usage(const char *p) {
-    dprintf(STDERR_FILENO,
+    fprintf(stderr,
         "Usage: %s [-c|-d|-e|-u combined] [--comp-alg name] [--enc-alg name] -i input -o output [-k key]\n"
         "Operations:\n"
         "  -e  encrypt\n"
@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
     } else if (read_key_from_file(keyopt, key) == 0) {
         // La clave se leyó del archivo
     } else {
-        dprintf(STDERR_FILENO, "Invalid key format\n");
+        fprintf(stderr, "Invalid key format\n");
         return 1;
     }
 

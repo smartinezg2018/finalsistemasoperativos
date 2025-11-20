@@ -15,7 +15,7 @@ AES_SRCS = aes_cli.cpp \
 	AES/structures.cpp \
 	AES/aes_encrypt.cpp \
 	AES/aes_decrypt.cpp
-AES_OBJS = $(AES_SRCS:.cpp=.o)
+AES_OBJS = $(AES_SRCS:.cpp=.o) fileEncrypting.o
 AES_TARGET = aes_tool
 
 # Default target
