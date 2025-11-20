@@ -3,7 +3,7 @@
 **Proyecto Final - Sistemas Operativos**  
 **Universidad EAFIT**
 
-## Equipo
+## Equipo 3
 
 - **Samuel Aristizabal**
 - **Agustín Figueroa**
@@ -222,7 +222,3 @@ finalSistemasOperativos/
 ## Licencia
 
 Este proyecto fue desarrollado como trabajo académico para la clase de Sistemas Operativos de la Universidad EAFIT.
-
----
-
-**Universidad EAFIT - 2024**
