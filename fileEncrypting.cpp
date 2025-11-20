@@ -30,7 +30,7 @@ int encryptFile(const char* inputFile, const char* outputFile, unsigned char* ex
     unsigned char* encryptedBuffer = new unsigned char[16 + paddedSize];
 
     // Encriptar header en los primeros 16 bytes
-    AESEncrypt(header, expandedKey, encryptedBuffer);
+    AESEncrypt(header, expandedKey, encryptedBuffer, 10);
 
     // Leer archivo
     ssize_t bytesRead = read(fd_in, buffer, fileSize);
@@ -45,7 +45,7 @@ int encryptFile(const char* inputFile, const char* outputFile, unsigned char* ex
 
     // Encriptar contenido en bloques
     for (size_t i = 0; i < paddedSize; i += 16) {
-        AESEncrypt(buffer + i, expandedKey, encryptedBuffer + 16 + i);
+        AESEncrypt(buffer + i, expandedKey, encryptedBuffer + 16 + i, 10);
     }
 
     // Escribir salida: header + contenido

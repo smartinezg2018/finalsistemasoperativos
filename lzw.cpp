@@ -17,23 +17,19 @@ using namespace std;
 map<string,int> lzw::asiicMapEnc(){
     map<string, int> table;
     for (int i = 0; i <= 255; i++) {
-        string ch = "";
-        ch += char(i);
+        string ch(1, char(i)); // Más eficiente que concatenar
         table[ch] = i;
     }
     return table;
-    
 }
 
 map<int,string> lzw::asiicMapDec(){
     map<int, string> table;
     for (int i = 0; i <= 255; i++) {
-        string ch = "";
-        ch += char(i);
+        string ch(1, char(i)); // Más eficiente que concatenar
         table[i] = ch;
     }
     return table;
-    
 }
 
 struct BitWriter {
@@ -42,7 +38,7 @@ struct BitWriter {
     int bitCount = 0;
 
     void writeBits(uint32_t value, int bits) {
-        bitBuffer = (bitBuffer << bits) | value;
+        bitBuffer = (bitBuffer << bits) | (value & ((1u << bits) - 1));
         bitCount += bits;
 
         while (bitCount >= 8) {
@@ -78,7 +74,7 @@ struct BitReader {
         }
 
         bitCount -= bits;
-        value = (bitBuffer >> bitCount) & ((1 << bits) - 1);
+        value = (bitBuffer >> bitCount) & ((1u << bits) - 1);
         return true;
     }
 };

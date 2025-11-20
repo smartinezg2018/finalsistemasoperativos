@@ -70,14 +70,14 @@ void InvMixColumns(unsigned char* state) {
     }
 }
 
-void Round(unsigned char* state, unsigned char* key) {
+static void Round(unsigned char* state, unsigned char* key) {
     InvSubBytes(state);
     InvShiftRows(state);
     InvMixColumns(state);
     AddRoundKey(state, key);
 }
 
-void FinalRound(unsigned char* state, unsigned char* key) {
+static void FinalRound(unsigned char* state, unsigned char* key) {
     InvSubBytes(state);
     InvShiftRows(state);
     AddRoundKey(state, key);
