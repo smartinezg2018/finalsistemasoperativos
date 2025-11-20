@@ -6,6 +6,11 @@ MAIN_TARGET = main
 MAIN_OBJS = main.o menu.o filePartitioner.o lzw.o huffman.o fileEncrypting.o \
 	AES/structures.o AES/aes_encrypt.o AES/aes_decrypt.o
 
+# GSEA CLI program
+GSEA_TARGET = gsea
+GSEA_OBJS = gsea_cli.o filePartitioner.o lzw.o huffman.o fileEncrypting.o \
+	AES/structures.o AES/aes_encrypt.o AES/aes_decrypt.o
+
 # Huffman project (standalone, if needed separately)
 # HUFFMAN_TARGET = huffman
 # HUFFMAN_OBJS = huffman_main.o huffman.o
@@ -19,7 +24,7 @@ AES_OBJS = $(AES_SRCS:.cpp=.o) fileEncrypting.o
 AES_TARGET = aes_tool
 
 # Default target
-all: $(MAIN_TARGET) $(AES_TARGET)
+all: $(MAIN_TARGET) $(GSEA_TARGET) $(AES_TARGET)
 
 # Main program target
 $(MAIN_TARGET): $(MAIN_OBJS)
@@ -43,6 +48,13 @@ huffman.o: huffman.cpp huffman.h
 fileEncrypting.o: fileEncrypting.cpp fileEncrypting.h AES/aes_encrypt.h AES/aes_decrypt.h
 	$(CXX) $(CXXFLAGS) -c fileEncrypting.cpp
 
+# GSEA CLI target
+$(GSEA_TARGET): $(GSEA_OBJS)
+	$(CXX) $(CXXFLAGS) -o $(GSEA_TARGET) $(GSEA_OBJS)
+
+gsea_cli.o: gsea_cli.cpp filePartitioner.h huffman.h fileEncrypting.h AES/structures.h
+	$(CXX) $(CXXFLAGS) -c gsea_cli.cpp
+
 # Huffman target (commented out - Huffman is integrated in main)
 # $(HUFFMAN_TARGET): $(HUFFMAN_OBJS)
 # 	$(CXX) $(CXXFLAGS) -o $(HUFFMAN_TARGET) $(HUFFMAN_OBJS)
@@ -55,6 +67,6 @@ $(AES_TARGET): $(AES_OBJS)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(MAIN_OBJS) $(AES_OBJS) $(MAIN_TARGET) $(AES_TARGET)
+	rm -f $(MAIN_OBJS) $(GSEA_OBJS) $(AES_OBJS) $(MAIN_TARGET) $(GSEA_TARGET) $(AES_TARGET)
 
 .PHONY: all clean
